@@ -14,6 +14,7 @@ import (
 
 	client "github.com/hashicorp/nomad/client/config"
 	"github.com/hashicorp/nomad/nomad"
+	"github.com/hashicorp/nomad/nomad/structs"
 )
 
 // Config is the configuration for the Nomad agent.
@@ -86,6 +87,10 @@ type Config struct {
 	// AtlasConfig is used to configure Atlas
 	Atlas *AtlasConfig `mapstructure:"atlas"`
 
+	// ConsulConfig is used to configure Consul clients and register the nomad
+	// server and client services with Consul
+	ConsulConfig *ConsulConfig `mapstructure:"consul"`
+
 	// NomadConfig is used to override the default config.
 	// This is largly used for testing purposes.
 	NomadConfig *nomad.Config `mapstructure:"-" json:"-"`
@@ -126,6 +131,50 @@ type AtlasConfig struct {
 	// Endpoint is the SCADA endpoint used for Atlas integration. If
 	// empty, the defaults from the provider are used.
 	Endpoint string `mapstructure:"endpoint"`
+}
+
+// ConsulConfig is used to configure Consul clients and register the nomad
+// server and client services with Consul
+type ConsulConfig struct {
+	// ServerService is used to register Nomad servers with Consul
+	ServerServiceName *structs.Service `mapstructure:"server_service_name"`
+
+	// ClientService is used to register Nomad clients with Consul
+	ClientServiceName *structs.Service `mapstructure:"client_name"`
+
+	// ServerAutoJoin determines if Nomad uses consul to join the servers by
+	// looking up the peers from Consul
+	ServerAutoJoin bool `mapstructure:"server_auto_join"`
+
+	// ClientAutoRegister determines if Nomad uses consul to look up server
+	// names and registers clients with them automatically during bootstrap
+	ClientAutoRegister bool `mapstructure:"client_auto_register"`
+
+	// Addr is the address of the local Consul agent
+	Addr string `mapstructure:"addr"`
+
+	// Token is used to provide a per-request ACL token.This options overrides
+	// the agent's default token
+	Token string `mapstructure:"token"`
+
+	// Auth is the information to use for http access to Consul agent
+	Auth string `mapstructure:"auth"`
+
+	// EnableSSL sets the transport scheme to talk to the Consul agent as https
+	EnableSSL bool `mapstructure:"ssl"`
+
+	// VerifySSL enables or disables SSL verification when the transport scheme
+	// for the consul api client is https
+	VerifySSL bool `mapstructure:"verify_ssl"`
+
+	// CAFile is the path to the ca certificate used for Consul communication
+	CAFile string `mapstructure:"ca_file"`
+
+	// CertFile is the path to the certificate for Consul communication
+	CertFile string `mapstructure:"cert_file"`
+
+	// KeyFile is the path to the private key for Consul communication
+	KeyFile string `mapstructure:"key_file"`
 }
 
 // ClientConfig is configuration specific to the client mode
