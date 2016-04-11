@@ -214,6 +214,16 @@ func (d *DockerDriver) containerBinds(alloc *allocdir.AllocDir, task *structs.Ta
 	}, nil
 }
 
+func (d *DockerDriver) volumesBinds(task *structs.Task) ([]string, error) {
+	var volumes []string
+	if values, ok := task.Config["volumes"]; ok {
+		for _, v := range values.([]interface{}) {
+			volumes = append(volumes, v.(string))
+		}
+	}
+	return volumes, nil
+}
+
 // createContainer initializes a struct needed to call docker.client.CreateContainer()
 func (d *DockerDriver) createContainer(ctx *ExecContext, task *structs.Task,
 	driverConfig *DockerDriverConfig, syslogAddr string) (docker.CreateContainerOptions, error) {
@@ -228,6 +238,11 @@ func (d *DockerDriver) createContainer(ctx *ExecContext, task *structs.Task,
 	binds, err := d.containerBinds(ctx.AllocDir, task)
 	if err != nil {
 		return c, err
+	}
+
+	volumes, _ := d.volumesBinds(task)
+	for _, v := range volumes {
+		binds = append(binds, v)
 	}
 
 	// Set environment variables.
